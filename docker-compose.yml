@@ -1,0 +1,26 @@
+services:
+  web:
+    image: ${IMAGE_NAME}:${IMAGE_TAG}
+    restart: unless-stopped
+    networks:
+      - traefik-public
+    labels:
+      - "traefik.enable=true"
+      - "traefik.docker.network=traefik-public"
+
+      - "traefik.http.routers.${COMPOSE_PROJECT_NAME}-front.rule=Host(`${DOMAIN}`)"
+      - "traefik.http.routers.${COMPOSE_PROJECT_NAME}-front.entrypoints=web"
+      - "traefik.http.routers.${COMPOSE_PROJECT_NAME}-front.priority=1"
+      - "traefik.http.routers.${COMPOSE_PROJECT_NAME}-front.service=${COMPOSE_PROJECT_NAME}-front-service"
+
+      - "traefik.http.services.${COMPOSE_PROJECT_NAME}-front-service.loadbalancer.server.port=80"
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost/health"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      
+networks:
+  traefik-public:
+    external: true
+    name: traefik-public
